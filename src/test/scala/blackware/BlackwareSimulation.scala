@@ -73,7 +73,7 @@ class BlackwareSimulation extends Simulation {
   }
 
   // Pattern for extracting containers from work order calls
-  val containerNumberPattern: Pattern = Pattern.compile("ContainerNumber>(.*?)<")
+  val containerNumberPattern: Pattern = Pattern.compile("ContainerNumber>(.*?)</b")
 
   // TODO refine
   def getNextWorkOrder: String = {
@@ -294,22 +294,31 @@ class BlackwareSimulation extends Simulation {
         println(session("RESPONSE_DATA").as[String])
         // TODO could possibly make helper method if needed in future API tests
         while (matcher.find()) {
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
+          println("FROM MATCHER" + matcher.group())
           container.add(matcher.group()
-            .replace("ContainerNumber>", "").replace("<", ""))
+            .replace("ContainerNumber>", "").replace("</b", ""))
         }
-        println("FIVE\n\n\n\n\n\nFICVE\n\n\n\n\n")
+        println("FIVE\n\n\n\n\n\nFIVE\n\n\n\n\n")
         container.forEach(x => {
           println("CONTAINER ====" + x)
+          jobContainers.add(x)
         })
-        println(session("RESPONSE_DATA").as[String])
-        println("\n\n\n\n\n\n\nWork Order = " + workOrders.getOrElse(new util.ArrayList[WorkOrder]()).get(0).containers.get(0))
+//        println("\n\n\n\n\n\n\nWork Order = " + workOrders.getOrElse(new util.ArrayList[WorkOrder]()).get(0).containers.get(0))
         println(s"JOB CONTAINERS SIZE = ${jobContainers.size()}")
         jobContainers.forEach(x => {
-          if (x.length > 2) { //TODO use better conditional
+          if (x.length > 2 && x.length < 13) { //TODO use better conditional
             containersToPrint.add(x)
+            println(containersToPrint)
           }
         })
-        println(s"JOB CONTAINERS SIZE = ${containersToPrint.size()}")
+        println(s"CONTAINERS TO PRINT SIZE = ${containersToPrint.size()}")
         numberOfContainers = containersToPrint.size()
         session
       })
@@ -329,7 +338,7 @@ class BlackwareSimulation extends Simulation {
       .exec(
         session => {
           println("WORK ORDERS ======")
-          println()
+          println(session("RESPONSE_DATA").as[String])
           // THIS SECTION IS USED FOR DEBUGGING
           //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
           //        println(session("RESPONSE_DATA").as[String]) // prints response
@@ -345,7 +354,7 @@ class BlackwareSimulation extends Simulation {
     allocateUCodeRange.inject(atOnceUsers(7)).protocols(httpProtocol)
       .andThen(getWorkOrderDetail.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
         .andThen(assignStamps.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
-          .andThen(getWorkOrderDetailCaptureContainer.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
+          .andThen(getWorkOrderDetailCaptureContainer.inject(nothingFor(400.seconds), atOnceUsers(1)).protocols(httpProtocol)
             .andThen(setStampsPrinted.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)))))
   )
 }
