@@ -102,13 +102,13 @@ class BlackwareSimulation extends Simulation {
 
   // Data needed to populate skus
   val skus: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEA1", "quantity" -> "70000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEA2", "quantity" -> "280"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEA3", "quantity" -> "25000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEB1", "quantity" -> "70000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEB2", "quantity" -> "280"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEB3", "quantity" -> "25000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "AEP0", "quantity" -> "70000")).queue
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A1", "quantity" -> "70000"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A2", "quantity" -> "280"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A3", "quantity" -> "25000"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B1", "quantity" -> "70000"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B2", "quantity" -> "280"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B3", "quantity" -> "25000"),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1P0", "quantity" -> "70000")).circular
 
   // TODO abstract me
   val allocateUCodeRangeString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
