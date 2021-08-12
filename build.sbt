@@ -8,4 +8,6 @@ scalacOptions := Seq(
 
 val gatlingVersion = "3.6.0"
 libraryDependencies += "io.gatling.highcharts" % "gatling-charts-highcharts" % gatlingVersion % "test,it"
-libraryDependencies += "io.gatling"            % "gatling-test-framework"    % gatlingVersion % "test,it"
+libraryDependencies += "io.gatling" % "gatling-test-framework" % gatlingVersion % "test,it"
+libraryDependencies += "junit" % "junit" % "4.8.1" % "test"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.12"

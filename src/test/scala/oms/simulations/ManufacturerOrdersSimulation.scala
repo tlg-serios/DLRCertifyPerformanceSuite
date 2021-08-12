@@ -2,10 +2,17 @@ package oms.simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
+import io.gatling.jdbc.Predef.jdbcFeeder
 import oms.Constants
 import oms.formObjects.OrderForm
 
 class ManufacturerOrdersSimulation extends Simulation {
+
+  val dbConnectionString = "jdbc:sqlserver://SGBBKA6486//APP"
+  val sqlQuery = "SELECT user_uuid FROM users where user_id = '${userId}'"
+  val sqlUserName = "dbUser"
+  val sqlPassword = "dbPassword"
+  val sqlQueryFeeder = jdbcFeeder(dbConnectionString, sqlUserName, sqlPassword, sqlQuery)
 
   val manufacturerOrder = OrderForm()
   val manufacturerEdit = manufacturerOrder.copy(
