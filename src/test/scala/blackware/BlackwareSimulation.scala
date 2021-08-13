@@ -335,7 +335,6 @@ class BlackwareSimulation extends Simulation {
         container.forEach(x => {
           jobContainers.add(x)
         })
-        //        println("\n\n\n\n\n\n\nWork Order = " + workOrders.getOrElse(new util.ArrayList[WorkOrder]()).get(0).containers.get(0))
         jobContainers.forEach(x => {
           if (x.length > 2 && x.length < 13) { //TODO use better conditional
             containersToPrint.add(x)
