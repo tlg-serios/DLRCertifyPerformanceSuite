@@ -14,8 +14,6 @@ import scala.concurrent.duration.DurationInt
 
 class BlackwareSimulation extends Simulation {
 
-  // TODO intelligent checks - i.e. make sure container number tags populated?
-
   // Used to determine number of update container status calls needed
   var numberOfContainers = 1
   // Used to determine number of work orders are in play
@@ -100,17 +98,22 @@ class BlackwareSimulation extends Simulation {
   // TODO perhaps abstract
   lazy val getDate = java.time.LocalDate.now
 
+  def bundles(i: Int): String = (70000 * i).toString
+
+  def sheets(i: Int): String = (280 * i).toString
+
+  def reels(i: Int): String = (25000 * i).toString
+
   // Data needed to populate skus
   val skus: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A1", "quantity" -> "70000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A2", "quantity" -> "280"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A3", "quantity" -> "25000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B1", "quantity" -> "70000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B2", "quantity" -> "280"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B3", "quantity" -> "25000"),
-    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1P0", "quantity" -> "70000")).circular
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A1", "quantity" -> bundles(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A2", "quantity" -> sheets(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1A3", "quantity" -> reels(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B1", "quantity" -> bundles(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B2", "quantity" -> sheets(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1B3", "quantity" -> reels(4)),
+    Map("uuid" -> getUUID, "workOrderRef" -> getNextWorkOrder, "skuCode" -> "A1P0", "quantity" -> bundles(4))).circular
 
-  // TODO abstract me
   val allocateUCodeRangeString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
     "<s:Header>\n" +
     "<h:Butterfly2013Header xmlns:h=\"http://schemas.delarue.com/2013/02/21/Butterfly.2013Header\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -146,7 +149,7 @@ class BlackwareSimulation extends Simulation {
     "</AllocateUCodeRange>\n" +
     "</s:Body>\n" +
     "</s:Envelope>"
-  // TODO abstract me
+
   val getWorkOrderDetailString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
     "<s:Header>\n" +
     "<h:Butterfly2013Header xmlns:h=\"http://schemas.delarue.com/2013/02/21/Butterfly.2013Header\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -173,8 +176,7 @@ class BlackwareSimulation extends Simulation {
     "</GetWorkOrderDetail>\n" +
     "</s:Body>\n" +
     "</s:Envelope>"
-  // TODO abstract me
-  // TODO move allocate print and ready for stock into one template and interpolate
+
   val allocateStampsString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
     "<s:Header>\n" +
     "<h:Butterfly2013Header xmlns:h=\"http://schemas.delarue.com/2013/02/21/Butterfly.2013Header\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -207,7 +209,7 @@ class BlackwareSimulation extends Simulation {
     "</WorkOrderStatusChange>\n" +
     "</s:Body>\n" +
     "</s:Envelope>"
-  // TODO perhaps abstract
+
   val printedString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
     "<s:Header>\n" +
     "<h:Butterfly2013Header xmlns:h=\"http://schemas.delarue.com/2013/02/21/Butterfly.2013Header\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -236,6 +238,7 @@ class BlackwareSimulation extends Simulation {
     "</UpdateJobContainerStatus>\n" +
     "</s:Body>\n" +
     "</s:Envelope>"
+
   val readyForStockString = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
     "<s:Header>\n" +
     "<h:Butterfly2013Header xmlns:h=\"http://schemas.delarue.com/2013/02/21/Butterfly.2013Header\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -264,7 +267,7 @@ class BlackwareSimulation extends Simulation {
     "</UpdateJobContainerStatus>\n" +
     "</s:Body>\n" +
     "</s:Envelope>"
-  // Standard protocol
+
   val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(Constants.blackwareUrl)
     .inferHtmlResources()
@@ -355,18 +358,17 @@ class BlackwareSimulation extends Simulation {
         ).replace("${uniqueUUID}", getUUID)))
       .check(bodyString.saveAs("RESPONSE_DATA"))
       .check(status.is(200)))
-//      .exec(
-//        session => {
-//          println("WORK ORDERS ======")
-//          println(session("RESPONSE_DATA").as[String])
-//          // THIS SECTION IS USED FOR DEBUGGING
-//          //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
-//          //        println(session("RESPONSE_DATA").as[String]) // prints response
-//          session
-//        }
-//      )
+    //      .exec(
+    //        session => {
+    //          println("WORK ORDERS ======")
+    //          println(session("RESPONSE_DATA").as[String])
+    //          // THIS SECTION IS USED FOR DEBUGGING
+    //          //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
+    //          //        println(session("RESPONSE_DATA").as[String]) // prints response
+    //          session
+    //        }
+    //      )
   }
-
 
   // session => ... calls are greyed out but are necesarry. Do not remove.
   def setStampsReadyForStock: ScenarioBuilder = scenario("set stamps ready for stock").repeat(session => numberOfContainers, "containers in job") {
@@ -382,7 +384,7 @@ class BlackwareSimulation extends Simulation {
       .exec(
         session => {
           println("WORK ORDERS ======" + workOrdersForDebugging)
-//          println(session("RESPONSE_DATA").as[String])
+          //          println(session("RESPONSE_DATA").as[String])
           // THIS SECTION IS USED FOR DEBUGGING
           //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
           //        println(session("RESPONSE_DATA").as[String]) // prints response
@@ -395,9 +397,9 @@ class BlackwareSimulation extends Simulation {
   // IMPORTANT: andThen calls must ALL be nested for consecutive execution
   // IMPORTANT: At once users is used here to set the number of SKUs to be created, not users at once
   setUp(allocateUCodeRange.inject(atOnceUsers(7)).protocols(httpProtocol)
-      .andThen(getWorkOrderDetail.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
-        .andThen(assignStamps.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
-          .andThen(getWorkOrderDetailCaptureContainer.inject(nothingFor(400.seconds), atOnceUsers(1)).protocols(httpProtocol)
-            .andThen(setStampsPrinted.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
-              .andThen(setStampsReadyForStock.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)))))))
+    .andThen(getWorkOrderDetail.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
+      .andThen(assignStamps.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
+        .andThen(getWorkOrderDetailCaptureContainer.inject(nothingFor(400.seconds), atOnceUsers(1)).protocols(httpProtocol)
+          .andThen(setStampsPrinted.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
+            .andThen(setStampsReadyForStock.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)))))))
 }
