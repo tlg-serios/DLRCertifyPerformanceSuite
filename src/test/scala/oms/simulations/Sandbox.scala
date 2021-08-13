@@ -8,8 +8,8 @@ class Sandbox {
   val url = """jdbc:sqlserver://SGBBKA6486\APP;databaseName=Butterfly.DAS"""
 //  val driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   val sqlQuery = "SELECT user_uuid FROM users where user_id = '${userId}'"
-  val username = """DLR\ADM_GreestT"""
-  val password = "%Y4puDt==%xe2C5h"
+  val username = """perftests"""
+  val password = "Butterfly2013"
   var connection:Connection = null
 
   @Test def foo = {
