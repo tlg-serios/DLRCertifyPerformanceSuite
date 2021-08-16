@@ -16,7 +16,11 @@ class ManufacturerOrdersSimulation extends Simulation {
   val sqlPassword = "Butterfly2013"
   val sqlQueryFeeder = jdbcFeeder(dbConnectionString, sqlUserName, sqlPassword, sqlQuery)
 
-  val manufacturerOrder = OrderForm()
+  val manufacturerOrder = OrderForm().copy(
+    licensee = "126",
+    deliverySite = "428",
+  )
+
   val manufacturerEdit = manufacturerOrder.copy(
     orderNumber = s"${Constants.orderRef}edit",
     iPartCodeList = "3",
@@ -111,20 +115,20 @@ class ManufacturerOrdersSimulation extends Simulation {
       .formParam("""skuIdProduct0""", """""")
       .formParam("""productDropdown0""", manufacturerOrder.productDropdown)
       .formParam("""multiple0""", manufacturerOrder.multiple)
-      .formParam("""orderNumber""", manufacturerOrder.orderNumber)
+      .formParam("""orderNumber""", session => session("order_id").as[String])
       .check(css("h2:contains('Create Order - Order Confirmation')").exists)
       .check(status.is(200)))
 
     .exec(http("post confirm submit order")
       .post("/fsOrderInput")
       .formParam("""reqaction""", """submitOrder""")
-      .formParam("""reference""", manufacturerOrder.reference)
+      .formParam("""reference""", session => session("customer_ref").as[String])
       .formParam("""flagAction""", manufacturerOrder.flagAction)
       .formParam("""product""", manufacturerOrder.product)
       .formParam("""itemType""", manufacturerOrder.itemType)
       .formParam("""siteID""", manufacturerOrder.deliverySite)
       .formParam("""organisationID""", manufacturerOrder.licensee)
-      .formParam("""orderNumber""", manufacturerOrder.orderNumber)
+      .formParam("""orderNumber""", session => session("order_id").as[String])
       .formParam("""calledfrom""", """confirm""")
       .formParam("""organisationGroup""", manufacturerOrder.deliveryTo)
       .formParam("""selectedSite""", manufacturerOrder.deliverySite)
@@ -219,7 +223,7 @@ class ManufacturerOrdersSimulation extends Simulation {
       .formParam("""skuIdProduct0""", """""")
       .formParam("""productDropdown0""", manufacturerEdit.productDropdown)
       .formParam("""multiple0""", manufacturerEdit.multiple)
-      .formParam("""orderNumber""", manufacturerEdit.orderNumber)
+      .formParam("""orderNumber""", session => session("order_id").as[String])
             .check(bodyString.saveAs("RESPONSE_DATA"))
       .check(css("h2:contains('Edit Order - Order Confirmation')").exists)
       .check(status.is(200)))
@@ -239,14 +243,14 @@ class ManufacturerOrdersSimulation extends Simulation {
       .formParam("""selectedLinkedOrderLineId""", """""")
       .formParam("""selectedLinkedOrderLineId""", """""")
       .formParam("""orderID""", """27""")
-      .formParam("""reference""", manufacturerEdit.reference)
+      .formParam("""reference""", session => session("customer_ref").as[String])
       .formParam("""flagAction""", manufacturerEdit.flagAction)
       .formParam("""product""", manufacturerEdit.product)
       .formParam("""itemType""", manufacturerEdit.itemType)
       .formParam("""siteID""", manufacturerEdit.deliverySite)
       .formParam("""organisationID""", manufacturerEdit.licensee)
       .formParam("""PREFIX""", """""")
-      .formParam("""orderNumber""", manufacturerEdit.orderNumber)
+      .formParam("""orderNumber""", session => session("order_id").as[String])
       .formParam("""calledfrom""", """confirm""")
       .formParam("""organisationGroup""", """""")
       .formParam("""selectedSite""", """""")
