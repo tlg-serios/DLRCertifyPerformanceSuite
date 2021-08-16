@@ -76,7 +76,14 @@
 //      .formParam("""selectedDeliverySite""", """""")
 //      .formParam("""selectedDeliverySiteValue""", """""")
 //      .check(css("h2:contains('Create Order - Products')").exists)
+//      .check(bodyString.saveAs("RESPONSE_DATA"))
 //      .check(status.is(200)))
+//    .exec(
+//      session => {
+//        println(session("RESPONSE_DATA").as[String])
+//        session
+//      }
+//    )
 //
 //    .exec(http("confirm submit order")
 //      .post("/fsOrderInput")
@@ -156,8 +163,8 @@
 //      .formParam("""element5_0""", """""")
 //      .check(css("h2:contains('Create Order - Order Creation Complete')").exists)
 //      .check(status.is(200))
-////       THIS IS HOW TO GRAB RESPONSE FOR DEBUG
-////            .check(bodyString.saveAs("RESPONSE_DATA"))
+//      //       THIS IS HOW TO GRAB RESPONSE FOR DEBUG
+//      //            .check(bodyString.saveAs("RESPONSE_DATA"))
 //    )
 //    .exec(
 //      session => {
@@ -237,6 +244,14 @@
 //      .formParam("""orderNumber""", importerEdit.orderNumber)
 //      .check(css("h2:contains('Edit Order - Order Confirmation')").exists)
 //      .check(status.is(200)))
+//    .exec(
+//      session => {
+//        // THIS SECTION IS USED FOR DEBUGGING
+//        //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
+//        println(session("RESPONSE_DATA").as[String]) // prints response
+//        session
+//      }
+//    )
 //
 //    .exec(http("confirmed edited order")
 //      .post("/fsOrderEdit")
@@ -274,6 +289,7 @@
 //      .formParam("""element5_0""", """""")
 //      .formParam("""element5_0""", """""")
 //      .check(css("h2:contains('Edit Order - Order Amendment Complete')").exists)
+//      .check(bodyString.saveAs("RESPONSE_DATA"))
 //      .check(status.is(200)))
 //    //      // THIS IS HOW TO GRAB RESPONSE FOR DEBUG
 //    //      //      .check(bodyString.saveAs("RESPONSE_DATA"))
@@ -281,10 +297,10 @@
 //      session => {
 //        // THIS SECTION IS USED FOR DEBUGGING
 //        //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
-////        println(session("RESPONSE_DATA").as[String]) // prints response
+//        println(session("RESPONSE_DATA").as[String]) // prints response
 //        session
 //      }
 //    )
-//  setUp(createOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)
-//    .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
+//  setUp(createOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
+//  //    .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
 //}

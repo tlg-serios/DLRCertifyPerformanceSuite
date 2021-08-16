@@ -8,10 +8,11 @@ import oms.formObjects.OrderForm
 
 class ManufacturerOrdersSimulation2 extends Simulation {
 
-  val dbConnectionString = "jdbc:microsoft:sqlserver://SGBBKA6486//APP"
-  val sqlQuery = "SELECT user_uuid FROM users where user_id = '${userId}'"
-  val sqlUserName = "adm/greestt"
-  val sqlPassword = "%Y4puDt==%xe2C5h"
+  val dbConnectionString = """jdbc:sqlserver://SGBBKA6486\APP;databaseName=Butterfly.DAS"""
+  val sqlQuery = "SELECT TOP 1 order_id, customer_ref FROM dbo.orders where order_status = 'SUBMITTED_FOR_APPROVAL' " +
+    "ORDER BY NEWID()"
+  val sqlUserName = """perftests"""
+  val sqlPassword = "Butterfly2013"
   val sqlQueryFeeder = jdbcFeeder(dbConnectionString, sqlUserName, sqlPassword, sqlQuery)
 
   val manufacturerOrder = OrderForm()
@@ -32,7 +33,13 @@ class ManufacturerOrdersSimulation2 extends Simulation {
     .exec(http("get login")
       .get("/index.jsp?timeout=true")
       .check(status.is(200)))
-
+    .exec(
+      session => {
+        println(session("order_id").as[String])
+        println(session("customer_ref").as[String])
+        session
+      }
+    )
     .exec(http("input credentials")
       .post("/fsLogin")
       .check(headerRegex("Set-Cookie", "(.*)").saveAs("authToken"))
@@ -226,7 +233,7 @@ class ManufacturerOrdersSimulation2 extends Simulation {
       session => {
         // THIS SECTION IS USED FOR DEBUGGING
         //        println(s"AUTH TOKEN = ${session("authToken").as[String]}") // prints auth token
-               println(session("RESPONSE_DATA").as[String]) // prints response
+//               println(session("RESPONSE_DATA").as[String]) // prints response
         session
       }
     )
@@ -236,7 +243,7 @@ class ManufacturerOrdersSimulation2 extends Simulation {
       .formParam("""reqaction""", """submitOrderConfirm""")
       .formParam("""selectedLinkedOrderLineId""", """""")
       .formParam("""selectedLinkedOrderLineId""", """""")
-      .formParam("""orderID""", """27""")
+      .formParam("""orderID""", session => session("order_id").as[String])
       .formParam("""reference""", manufacturerEdit.reference)
       .formParam("""flagAction""", manufacturerEdit.flagAction)
       .formParam("""product""", manufacturerEdit.product)

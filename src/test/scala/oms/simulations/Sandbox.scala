@@ -7,7 +7,8 @@ import java.sql.Connection
 class Sandbox {
   val url = """jdbc:sqlserver://SGBBKA6486\APP;databaseName=Butterfly.DAS"""
 //  val driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-  val sqlQuery = "SELECT user_uuid FROM users where user_id = '${userId}'"
+  val sqlQuery = "SELECT TOP 1 order_id, customer_ref FROM dbo.orders where order_status = 'SUBMITTED_FOR_APPROVAL' " +
+    "ORDER BY NEWID()"
   val username = """perftests"""
   val password = "Butterfly2013"
   var connection:Connection = null
@@ -20,11 +21,11 @@ class Sandbox {
 
       // create the statement, and run the select query
       val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("SELECT host, user FROM user")
+      val resultSet = statement.executeQuery(sqlQuery)
       while ( resultSet.next() ) {
-        val host = resultSet.getString("host")
-        val user = resultSet.getString("user")
-        println("host, user = " + host + ", " + user)
+        val id = resultSet.getString("customer_ref")
+        val name = resultSet.getString("order_id")
+        println(id + " and " + name)
       }
     } catch {
       case e => e.printStackTrace
