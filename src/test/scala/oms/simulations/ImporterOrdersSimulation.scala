@@ -2,10 +2,18 @@ package oms.simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
+import io.gatling.jdbc.Predef.jdbcFeeder
 import oms.Constants
 import oms.formObjects.OrderForm
 
 class ImporterOrdersSimulation extends Simulation {
+
+  val dbConnectionString = """jdbc:sqlserver://SGBBKA6486\APP;databaseName=Butterfly.DAS"""
+  val sqlQuery = "SELECT TOP 1 order_id, customer_ref FROM dbo.orders where order_status = 'SUBMITTED_FOR_APPROVAL' " +
+    "ORDER BY NEWID()"
+  val sqlUserName = """perftests"""
+  val sqlPassword = "Butterfly2013"
+  val sqlQueryFeeder = jdbcFeeder(dbConnectionString, sqlUserName, sqlPassword, sqlQuery)
 
   val importerOrder = OrderForm().copy(
     licensee = "123",
@@ -121,21 +129,21 @@ class ImporterOrdersSimulation extends Simulation {
       .formParam("""element4_display_0""", """""")
       .formParam("""element4_0""", """""")
       .formParam("""element5_0""", """""")
-      .formParam("""orderNumber""", session => session("order_id").as[String])
+      .formParam("""orderNumber""", session => """${order_id}""")
       .check(css("h2:contains('Create Order - Order Confirmation')").exists)
       .check(status.is(200)))
 
     .exec(http("post confirm submit order")
       .post("/fsOrderInput")
       .formParam("""reqaction""", """submitOrder""")
-      .formParam("""reference""", session => session("customer_ref").as[String])
+      .formParam("""reference""", session => """${customer_ref}""")
       .formParam("""flagAction""", importerOrder.flagAction)
       .formParam("""product""", importerOrder.product)
       .formParam("""itemType""", importerOrder.itemType)
       .formParam("""siteID""", importerOrder.deliverySite)
       .formParam("""organisationID""", importerOrder.licensee)
       .formParam("""PREFIX""", """""")
-      .formParam("""orderNumber""", session => session("order_id").as[String])
+      .formParam("""orderNumber""", session => """${order_id}""")
       .formParam("""calledfrom""", """confirm""")
       .formParam("""organisationGroup""", importerOrder.deliveryTo)
       .formParam("""selectedSite""", importerOrder.deliverySite)
@@ -174,7 +182,7 @@ class ImporterOrdersSimulation extends Simulation {
       }
     )
 
-  val editOrderScenario = scenario("edit order")
+  val editOrderScenario = scenario("edit order").feed(sqlQueryFeeder)
     .exec(http("get login")
       .get("/index.jsp?timeout=true")
       .check(status.is(200)))
@@ -240,7 +248,7 @@ class ImporterOrdersSimulation extends Simulation {
       .formParam("""skuIdProduct0""", """""")
       .formParam("""productDropdown0""", importerEdit.productDropdown)
       .formParam("""multiple0""", importerEdit.multiple)
-      .formParam("""orderNumber""", session => session("order_id").as[String])
+      .formParam("""orderNumber""", session => """${order_id}""")
       .check(css("h2:contains('Edit Order - Order Confirmation')").exists)
       .check(status.is(200)))
     .exec(
@@ -258,14 +266,14 @@ class ImporterOrdersSimulation extends Simulation {
       .formParam("""selectedLinkedOrderLineId""", """""")
       .formParam("""selectedLinkedOrderLineId""", """""")
       .formParam("""orderID""", """27""")
-      .formParam("""reference""", session => session("customer_ref").as[String])
+      .formParam("""reference""", session => {"""customer_ref"""})
       .formParam("""flagAction""", importerEdit.flagAction)
       .formParam("""product""", importerEdit.product)
       .formParam("""itemType""", importerEdit.itemType)
       .formParam("""siteID""", importerEdit.deliverySite)
       .formParam("""organisationID""", importerEdit.licensee)
       .formParam("""PREFIX""", """""")
-      .formParam("""orderNumber""", session => session("order_id").as[String])
+      .formParam("""orderNumber""", session => """${order_id}""")
       .formParam("""calledfrom""", """confirm""")
       .formParam("""organisationGroup""", """""")
       .formParam("""selectedSite""", """""")
@@ -300,6 +308,6 @@ class ImporterOrdersSimulation extends Simulation {
         session
       }
     )
-  setUp(createOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
-  //    .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
+  setUp(createOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)
+      .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
 }
