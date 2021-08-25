@@ -395,7 +395,7 @@ class BlackwareSimulation extends Simulation {
   // Set up with andThen() and nothingFor() to ensure consecutive execution TODO refine timings
   // IMPORTANT: andThen calls must ALL be nested for consecutive execution
   // IMPORTANT: At once users is used here to set the number of SKUs to be created, not users at once
-  setUp(allocateUCodeRange.inject(atOnceUsers(7)).protocols(httpProtocol)
+  setUp(allocateUCodeRange.inject(atOnceUsers(1)).protocols(httpProtocol)
     .andThen(getWorkOrderDetail.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
       .andThen(assignStamps.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
         .andThen(getWorkOrderDetailCaptureContainer.inject(nothingFor(400.seconds), atOnceUsers(1)).protocols(httpProtocol)
