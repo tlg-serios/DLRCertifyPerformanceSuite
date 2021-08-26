@@ -217,8 +217,7 @@ class DPCDownloadSimulation extends Simulation {
     }
   }
 
-  val getCodeGenerationStatus: ScenarioBuilder = scenario("get code generation status")
-      .exec(pollCodeGenerationStatus)
+  val getCodeGenerationStatus: ScenarioBuilder = scenario("get code generation status").exec(pollCodeGenerationStatus)
 
   setUp(getEntitlementString.inject(atOnceUsers(7)).protocols(httpProtocol)
     .andThen(requestCodeGenerationString.inject(nothingFor(200.seconds), atOnceUsers(1)).protocols(httpProtocol)
