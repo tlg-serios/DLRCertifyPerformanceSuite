@@ -6,8 +6,18 @@ import io.gatling.jdbc.Predef.jdbcFeeder
 import oms.Constants
 import oms.formObjects.OrderForm
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 class ManufacturerOrdersSimulation extends Simulation {
 
+  def date(): String = {
+    val localDate = LocalDate.now()
+    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    val text = date.format(formatter)
+    val parsedDate = LocalDate.parse(text, formatter)
+    parsedDate.toString
+  }
 
   val dbConnectionString = """jdbc:sqlserver://SGBBKA6486\APP;databaseName=Butterfly.DAS"""
   val sqlQuery = "SELECT TOP 1 order_id, customer_ref FROM dbo.orders where order_status = 'SUBMITTED_FOR_APPROVAL' " +
@@ -363,6 +373,91 @@ class ManufacturerOrdersSimulation extends Simulation {
       .formParam("""comments""", """""")
       .check(css("h2:contains('New Orders - Review and Approve')").exists)
       .check(status.is(200)))
+
+  val processOrderScenario = scenario("process order").feed(sqlQueryFeeder)
+    .exec(http("get login")
+      .get("/index.jsp?timeout=true")
+      .check(status.is(200)))
+
+    .exec(http("input credentials")
+      .post("/fsLogin")
+      .check(headerRegex("Set-Cookie", "(.*)").saveAs("authToken"))
+      .formParam("""userid""", Constants.username)
+      .formParam("""userpassword""", Constants.password)
+      .formParam("""actionrec""", """""")
+      .formParam("""reqaction""", """""")
+      .formParam("""languageIdSelected""", """1""")
+      .formParam("""isLanguageChanged""", """true""")
+      .formParam("""as_sfid""", """AAAAAAW5wqSJNRJZhWsdrXIeeDP2x5dy3lWiMLIvjB5ZyJkMeuEXM4Dkdj6bmv_q4tSovydMFki8Jnv00IK0qn0VNRm6VFsrShUeMK6TgceUyFifPrdI0kCMRU3TnQqt92lFN3sy5egAeQ9tFL0INJsO-2p1F_9pdEeJa93SnqxGzUBHsA==""")
+      .formParam("""as_fid""", """9380625ce296d688ace1d9b5b5be88a72b0f9b01""")
+      .check(status.is(200)))
+
+    .exec(http("get process orders")
+      .get("/fsOrderProcess?reference=OrderProcess")
+      .check(status.is(200)))
+
+    .exec(http("process order")
+      .post( "/fsOrderProcess?reference=OrderProcess")
+      .formParam("""reqaction""", """selectOrder""")
+      .formParam("""thisPage""", """/orders/orderSelect.jsp""")
+      .formParam("""selectedorder""", """2""")
+      .formParam("""orderID""", """""")
+      .formParam("""action""", """fsOrderProcess?reference=OrderProcess""")
+      .formParam("""orderColumn""", """orderDate""")
+      .formParam("""orderBy""", """0""")
+      .check(css("h2:contains('Process Order - Review Order')").exists)
+      .check(status.is(200)))
+
+    .exec(http("confirm process order")
+      .post( "/fsOrderProcess?reference=OrderProcess")
+      .formParam("""reqaction""", """processOrder""")
+      .formParam("""thisPage""", """/orders/orderProcess.jsp""")
+      .formParam("""orderid""", """2""")
+      .formParam("""approverName""", """IS Admin""")
+      .formParam("""ifsRefA""", """KMprocess""")
+      .formParam("""ifsRefB""", """""")
+      .check(css("h2:contains('Process Order - Order Processing Complete')").exists)
+      .check(status.is(200)))
+
+  val processFinanceOrderScenario = scenario("process order").feed(sqlQueryFeeder)
+    .exec(http("get login")
+      .get("/index.jsp?timeout=true")
+      .check(status.is(200)))
+
+    .exec(http("input credentials")
+      .post("/fsLogin")
+      .check(headerRegex("Set-Cookie", "(.*)").saveAs("authToken"))
+      .formParam("""userid""", Constants.username)
+      .formParam("""userpassword""", Constants.password)
+      .formParam("""actionrec""", """""")
+      .formParam("""reqaction""", """""")
+      .formParam("""languageIdSelected""", """1""")
+      .formParam("""isLanguageChanged""", """true""")
+      .formParam("""as_sfid""", """AAAAAAW5wqSJNRJZhWsdrXIeeDP2x5dy3lWiMLIvjB5ZyJkMeuEXM4Dkdj6bmv_q4tSovydMFki8Jnv00IK0qn0VNRm6VFsrShUeMK6TgceUyFifPrdI0kCMRU3TnQqt92lFN3sy5egAeQ9tFL0INJsO-2p1F_9pdEeJa93SnqxGzUBHsA==""")
+      .formParam("""as_fid""", """9380625ce296d688ace1d9b5b5be88a72b0f9b01""")
+      .check(status.is(200)))
+
+    .exec(http("get finance process orders")
+      .get("/spring/manageorders/financeApproval/selectFinanceOrder?reference=FinanceApprover")
+      .check(status.is(200)))
+
+    .exec(http("process finance order")
+      .post( "/spring/manageorders/financeApproval/updateOrder")
+      .formParam("""selectedOrderId""", """5""")
+      .check(css("h2:contains('Finance Process Order - Review Order')").exists)
+      .check(status.is(200)))
+    //date complexities to be added, two fields, Issuance Date and Receipt Date
+
+    .exec(http("confirm finance process order")
+      .post( "/spring/manageorders/financeApproval/reviewOrder")
+      .formParam("""selectedOrderId""", """5""")
+      .formParam("""issuanceDateText""", date())
+      .formParam("""issuanceDate""", date())
+      .formParam("""paymentDateText""", date())
+      .formParam("""paymentDate""", date())
+      .check(css("h2:contains('FinanceProcess Order - Complete')").exists)
+      .check(status.is(200)))
+
     //      // THIS IS HOW TO GRAB RESPONSE FOR DEBUG
     //      //      .check(bodyString.saveAs("RESPONSE_DATA"))
     .exec(
@@ -374,10 +469,10 @@ class ManufacturerOrdersSimulation extends Simulation {
       }
     )
   setUp(createOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)
-    .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
-      //.andThen(approveOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
-        //.andThen(rejectOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
-
+    .andThen(editOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
+      .andThen(approveOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
+        .andThen(processOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol))
+          .andThen(processFinanceOrderScenario.inject(atOnceUsers(1)).protocols(httpProtocol)))
 
 
 
