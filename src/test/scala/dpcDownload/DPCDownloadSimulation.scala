@@ -15,10 +15,11 @@ import scala.concurrent.duration.DurationInt
 class DPCDownloadSimulation extends Simulation {
 
   val httpProtocol: HttpProtocolBuilder = http
-    .baseUrl(Constants.entitlementUrl)
+    .baseUrl(Constants.entitlementUrl + "/DPCDownload/DPCDownloadService.svc")
     .inferHtmlResources()
     .acceptHeader("text/html;charset=UTF-8")
     .header("Content-Type", "text/xml; charset=utf-8")
+    .header("Authorization", "ISAdmin:SXNhZG1pbjpUQHg1dEBtcDUhIQ==")
 
 
   def generateEntitlements(entitlements: List[Entitlement]): String = {
@@ -34,16 +35,16 @@ class DPCDownloadSimulation extends Simulation {
   }
 
   val getEntitlementString: String =
-    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">""" +
+    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload"><soapenv:Header>""" +
       """<soapenv:Header>""" +
       """<soap:HUBHeader>""" +
       """<soap:RequestID>${uuid}</h:RequestID>""" +
       """<soap:ContractID>1</h:ContractID>""" +
-      """<soap:OperatorID>Planning User</h:OperatorID>""" +
-      """<soap:MachineID>3</h:MachineID>""" +
-      s"""<soap:DateTime>${getDate}T00:00.0000000Z</h:DateTime>""" +
-      """<soap:CallingApplicationId i:nil="true">""" +
-      """<soap:AuthenticationToken>F0C4B20D-694A-48F7-8D6A-E7B8D8D19AC2</soap:AuthenticationToken>""" +
+      """<soap:OperatorID>1</h:OperatorID>""" +
+      """<soap:MachineID>1</h:MachineID>""" +
+      s"""<soap:DateTime>${getDate}T00:00:00.000+01:00</h:DateTime>""" +
+      """<soap:CallingApplicationId>DTP</soap:CallingApplicationId>""" +
+      """<soap:AuthenticationToken>A3D53E5D-F136-4144-B40A-CF7A9A8C3223</soap:AuthenticationToken>""" +
       """</soap:HUBHeader>""" +
       """</soapenv:Header>""" +
       """<soapenv:Body>""" +
@@ -155,14 +156,14 @@ class DPCDownloadSimulation extends Simulation {
   lazy val getDate = java.time.LocalDate.now
 
   val getEntitlementData: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207 - Regression Product D0", "marketCountryCode" -> "A1")).queue
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1"),
+    Map("uuid" -> getUUID, "siteGLN" -> "7121300.00020.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1")).queue
 
   val requestCodeGenerationData: FeederBuilderBase[String]#F = Array(
     Map("uuid" -> getUUID, "manufacturerRequestID" -> getUUID, "quantity" -> "FIND ME", "manufacturerOrgGLN" -> "FIND ME", "machineGLN" -> "FIND ME", "siteGLN" -> "FIND ME", "productEAN" -> "FIND ME", "marketCountryCode" -> "A1"),
