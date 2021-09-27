@@ -22,6 +22,29 @@ class DPCDownloadSimulation extends Simulation {
     .header("Authorization", "ISAdmin:SXNhZG1pbjpUQHg1dEBtcDUhIQ==")
 
 
+  def heinEntitlements: String = {
+    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
+      <soapenv:Header>
+        <soap:HUBHeader>
+          <soap:RequestId>c7d54a6d-69f2-489c-8056-0949ff698342</soap:RequestId>
+          <soap:ContractId>1</soap:ContractId>
+          <soap:OperatorId>1</soap:OperatorId>
+          <soap:MachineId>1</soap:MachineId>
+          <soap:DateTime>2019-12-09T12:34:56.789+01:00</soap:DateTime>
+          <soap:CallingApplicationId>DTP</soap:CallingApplicationId>
+          <soap:AuthenticationToken>A3D53E5D-F136-4144-B40A-CF7A9A8C3223</soap:AuthenticationToken>
+        </soap:HUBHeader>
+      </soapenv:Header>
+      <soapenv:Body>
+        <dpc:GetEntitlementsRequest>
+          <SiteGLN>7311101.00001.00</SiteGLN>
+          <ProductEAN>98765432201</ProductEAN>
+          <MarketCountryCode>QA</MarketCountryCode>
+        </dpc:GetEntitlementsRequest>
+      </soapenv:Body>
+    </soapenv:Envelope>"""
+  }
+
   def generateEntitlements(entitlements: List[Entitlement]): String = {
     var returnString = ""
     entitlements.foreach(entitlement => {
@@ -186,6 +209,7 @@ class DPCDownloadSimulation extends Simulation {
   def getEntitlement: ScenarioBuilder = scenario("get entitlement").feed(getEntitlementData)
     .exec(http("get entitlement")
       .post("/DpcDownload/DpcDownloadService.svc")
+      .header("Authorization", "SXNhZG1pbjpUQHg1dEBtcDUhIQ==")
       .body(StringBody(getEntitlementString))
       .check(bodyString.saveAs("RESPONSE_DATA"))
       .check(status.is(200))).pause(1)
