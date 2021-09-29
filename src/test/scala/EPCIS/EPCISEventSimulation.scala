@@ -17,6 +17,15 @@ class EPCISEventSimulation extends Simulation {
   var liveDPCs: util.ArrayList[String]
   var wasteDPCs: util.ArrayList[String]
 
+  var strings = new util.ArrayList[String]
+
+  var getNextString = {
+    val string = strings.get(0)
+    strings.remove(0)
+    string
+  }
+
+
   val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(Constants.sagaUrl)
     .inferHtmlResources()
@@ -24,32 +33,34 @@ class EPCISEventSimulation extends Simulation {
     .header("Content-Type", "text/xml; charset=utf-8")
     .authorizationHeader("username")
 
-  def processEpcis = {
-    separatedDPCs = DPCHandler.seperateWasteDPCs(DPCHandler.dpcs)
-    liveDPCs = separatedDPCs.get("liveDPCs")
-    wasteDPCs = separatedDPCs.get("wasteDPCs")
-  }
-
   var calls = new util.ArrayList[String]
 
   def createStrings(): List[String] = {
-    // create x event calls, foreach add to dpc list
+
     List("")
   }
+//
+//      api.call(EventHandler.getDestroyXMLStrings(wasteDPCs))
+//
+//  CSVHandler.output("destroyedCodes.csv", separatedDPCs.get("wasteDPCs"))
+//    // create comission events live dpcs and send to saga
+//    api.call(EventHandler.getCommissionXMLStrings(liveDPCs))
+//    CSVHandler.output("commissionedCodes.csv", separatedDPCs.get("liveDPCs"))
+//    // create shipment object with live dpcs
+//    val shipment = EventHandler.getAggregationXMLStrings(liveDPCs)
+//    // send aggregation events for this shipment to saga
+//    api.call(shipment.getAggregationEventStrings)
+//    CSVHandler.output("aggregatedCodes.csv", shipment.getEPCs)
+//    // create shipping event with container id and send to saga
+//    api.call(EventHandler.getShippingXMLString(shipment.getContainerID))
+//    CSVHandler.output("shippedCodes.csv", shipment.getContainerID)
+//  // set data feeder as ArrayList 'refs', then
 
-  api.call(EventHandler.getDestroyXMLStrings(wasteDPCs))
+  def callEpcis: ScenarioBuilder = scenario("callEPCIS")
+    .exec(http("call epcis")
+      .post("/api/acquire/rabbitmq/epcis")
+      .body(StringBody("EPCIS_EVENT".replace("EPCIS_EVENT", getNextString)))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200))).pause(1)
 
-  CSVHandler.output("destroyedCodes.csv", separatedDPCs.get("wasteDPCs"))
-    // create comission events live dpcs and send to saga
-    api.call(EventHandler.getCommissionXMLStrings(liveDPCs))
-    CSVHandler.output("commissionedCodes.csv", separatedDPCs.get("liveDPCs"))
-    // create shipment object with live dpcs
-    val shipment = EventHandler.getAggregationXMLStrings(liveDPCs)
-    // send aggregation events for this shipment to saga
-    api.call(shipment.getAggregationEventStrings)
-    CSVHandler.output("aggregatedCodes.csv", shipment.getEPCs)
-    // create shipping event with container id and send to saga
-    api.call(EventHandler.getShippingXMLString(shipment.getContainerID))
-    CSVHandler.output("shippedCodes.csv", shipment.getContainerID)
-  }
 }

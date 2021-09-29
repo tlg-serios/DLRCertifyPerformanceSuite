@@ -31,7 +31,6 @@ object EventHandler {
       })
       epcIterableList.removeAll(epcIterableList)
       // loop through events
-      import scala.collection.JavaConversions._
       for (event <- events) { // get agg event string for event and add to return string
         aggStrings.add(EPCISEventFactory.prepareAggregationEvent(event))
         // take the parent ID add add to epcs for next run, made into events at top of loop
@@ -71,7 +70,6 @@ object EventHandler {
     val pairingEvents = new util.ArrayList[String]
     // create list of pairing events
     val events = getPairingEvents(pairs)
-    import scala.collection.JavaConversions._
     for (event <- events) {
       pairingEvents.add(EPCISEventFactory.preparePairingEvent(event))
     }
@@ -116,11 +114,9 @@ object EventHandler {
     // chop eu codes into 5s
     val partitionedEUCodes = Lists.partition(keys, 5)
     // loop through blocks of 5 codes
-    import scala.collection.JavaConversions._
     for (list <- partitionedEUCodes) { // create list to hold 5 dpcs
       val uk = new util.ArrayList[String]
       // for each eu code get the corresponding dpc from map and add to list
-      import scala.collection.JavaConversions._
       for (string <- list) {
         uk.add(epcs.get(string))
       }
