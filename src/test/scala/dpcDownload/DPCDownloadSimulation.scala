@@ -64,7 +64,7 @@ class DPCDownloadSimulation extends Simulation {
     """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
    <soapenv:Header>
       <soap:HUBHeader>
-         <soap:RequestId>c7d54a6d-69f2-489c-8056-0949ff698342</soap:RequestId>
+         <soap:RequestId>c7d54a6d-69f2-439c-8056-0949ff698342</soap:RequestId>
            <soap:ContractId>1</soap:ContractId>
          <soap:OperatorId>1</soap:OperatorId>
          <soap:MachineId>1</soap:MachineId>
@@ -75,7 +75,7 @@ class DPCDownloadSimulation extends Simulation {
    </soapenv:Header>
    <soapenv:Body>
       <dpc:CodeGenRequest>
-        <ManufacturerRequestID>foo</ManufacturerRequestID>
+        <ManufacturerRequestID>00004</ManufacturerRequestID>
         <ManufacturerOrgGLN>${manufacturerOrgGLN}</ManufacturerOrgGLN>
         <SiteGLN>${siteGLN}</SiteGLN>
         <ProductEAN>${productEAN}</ProductEAN>
@@ -230,6 +230,21 @@ class DPCDownloadSimulation extends Simulation {
         session
       }
     )
+  def poll: ScenarioBuilder = scenario("get entitlement").feed(getEntitlementData)
+    .exec(http("get entitlement")
+      .post("/DpcDownload/DpcDownloadService.svc")
+      .header("SOAPAction", "GetCodeGenerationStatus")
+      .body(StringBody(pollString))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200))).pause(1)
+    .exec(
+      session => {
+        println(session("RESPONSE_DATA").as[String])
+
+        // set entitlement list
+        session
+      }
+    )
 
   var downloadReferences: util.ArrayList[String] = new util.ArrayList[String]()
 
@@ -253,25 +268,44 @@ class DPCDownloadSimulation extends Simulation {
           session
         }
       )
+
+  def pollString = {
+    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
+      |   <soapenv:Header>
+      |      <soap:HUBHeader>
+      |         <soap:RequestId>c7d54a6d-69f2-489c-8056-0949ff698342</soap:RequestId>
+      |         <soap:ContractId>1</soap:ContractId>
+      |         <soap:OperatorId>1</soap:OperatorId>
+      |         <soap:MachineId>1</soap:MachineId>
+      |         <soap:DateTime>2019-12-09T12:34:56.789+01:00</soap:DateTime>
+      |         <soap:CallingApplicationId>DTP</soap:CallingApplicationId>
+      |         <soap:AuthenticationToken>A3D53E5D-F136-4144-B40A-CF7A9A8C3223</soap:AuthenticationToken>
+      |      </soap:HUBHeader>
+      |   </soapenv:Header>
+      |   <soapenv:Body>
+      |      <dpc:GetCodeGenStatusRequest>
+      |         <DownloadReference>00003</DownloadReference>
+      |      </dpc:GetCodeGenStatusRequest>
+      |   </soapenv:Body>
+      |</soapenv:Envelope>""".stripMargin
+  }
   //
-  //  def pollCodeGenerationStatus = {
-  //    session => {
-  //      val downloadReference = getNextDownloadReference
-  //      doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
-  //        exec(
-  //          polling
-  //            .every(1 seconds)
-  //            .exec(
-  //              http("code generation polling")
-  //                .post("/dpcdownloadservice.svc")
-  //                .body(StringBody(requestCodeGenerationString.replace("${downloadReference}", downloadReference)))
-  //                .check(
-  //                  bodyString.saveAs("RESPONSE_DATA")
-  //                ))
-  //        )
-  //      }
-  //    }
-  //  }
+    def pollCodeGenerationStatus: ScenarioBuilder = scenario("request code generation").repeat(session => 1, "") {
+//        val downloadReference = getNextDownloadReference
+        doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
+          exec(
+            polling
+              .every(1 seconds)
+              .exec(
+                http("code generation polling")
+                  .post("/dpcdownloadservice.svc")
+                  .body(StringBody(pollString))
+                  .check(
+                    bodyString.saveAs("RESPONSE_DATA")
+                  ))
+          )
+        }
+    }
   //
   //  val getCodeGenerationStatus: ScenarioBuilder = scenario("get code generation status").exec(pollCodeGenerationStatus)
 
