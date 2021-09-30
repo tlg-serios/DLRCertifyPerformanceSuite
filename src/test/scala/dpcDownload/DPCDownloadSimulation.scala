@@ -37,7 +37,6 @@ class DPCDownloadSimulation extends Simulation {
         s"<Quantity>${entitlement.quantity}</Quantity>\n" +
         "</Entitlement>\n"
     })
-    println(returnString)
     returnString
   }
 
@@ -128,68 +127,6 @@ class DPCDownloadSimulation extends Simulation {
         </soapenv:Envelope>"""
   }
 
-  //
-  //  val getCodeGenerationStatusString: String =
-  //    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">""" +
-  //      """<soapenv:Header>""" +
-  //      """<soap:HUBHeader>""" +
-  //      """<soap:RequestID>${uuid}</h:RequestID>""" +
-  //      """<soap:ContractID>1</h:ContractID>""" +
-  //      """<soap:OperatorID>Planning User</h:OperatorID>""" +
-  //      """<soap:MachineID>3</h:MachineID>""" +
-  //      s"""<soap:DateTime>${getDate}T00:00.0000000Z</h:DateTime>""" +
-  //      """<soap:CallingApplicationId i:nil="true">""" +
-  //      """<soap:AuthenticationToken>F0C4B20D-694A-48F7-8D6A-E7B8D8D19AC2</soap:AuthenticationToken>""" +
-  //      """</soap:HUBHeader>""" +
-  //      """</soapenv:Header>""" +
-  //      """<soapenv:Body>""" +
-  //      """<dpc:GetCodeGenStatusRequest>""" +
-  //      """<DownloadReference>${downloadReference}</DownloadReference>""" +
-  //      """</dpc:GetCodeGenStatusRequest>""" +
-  //      """</soapenv:Body>""" +
-  //      """</soapenv:Envelope>"""
-
-  //  val downloadCodesString: String =
-  //  """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">""" +
-  //    """<soapenv:Header>""" +
-  //    """<soap:HUBHeader>""" +
-  //      """<soap:RequestID>${uuid}</h:RequestID>""" +
-  //      """<soap:ContractID>1</h:ContractID>""" +
-  //      """<soap:OperatorID>Planning User</h:OperatorID>""" +
-  //      """<soap:MachineID>3</h:MachineID>""" +
-  //      s"""<soap:DateTime>${getDate}T00:00.0000000Z</h:DateTime>""" +
-  //      """<soap:CallingApplicationId i:nil="true">""" +
-  //      """<soap:AuthenticationToken>F0C4B20D-694A-48F7-8D6A-E7B8D8D19AC2</soap:AuthenticationToken>""" +
-  //    """</soap:HUBHeader>""" +
-  //        """</soapenv:Header>""" +
-  //          """<soapenv:Body>""" +
-  //              """<dpc:DownloadCodesRequest>""" +
-  //                """<DownloadReference>${downloadReference}</DownloadReference>""" +
-  //                """<Offset>${offset}</Offset>""" +
-  //                """<Quantity>${quantity}</Quantity>""" +
-  //              """</dpc:DownloadCodesRequest>""" +
-  //            """</soapenv:Body>""" +
-  //          """</soapenv:Envelope>"""
-  //
-  //  val downloadCompleteString: String = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">""" +
-  //    """<soapenv:Header>""" +
-  //    """<soap:HUBHeader>""" +
-  //      """<soap:RequestID>${uuid}</h:RequestID>""" +
-  //      """<soap:ContractID>1</h:ContractID>""" +
-  //      """<soap:OperatorID>Planning User</h:OperatorID>""" +
-  //      """<soap:MachineID>3</h:MachineID>""" +
-  //      s"""<soap:DateTime>${getDate}T00:00.0000000Z</h:DateTime>""" +
-  //      """<soap:CallingApplicationId i:nil="true">""" +
-  //      """<soap:AuthenticationToken>F0C4B20D-694A-48F7-8D6A-E7B8D8D19AC2</soap:AuthenticationToken>""" +
-  //    """</soap:HUBHeader>""" +
-  //    """</soapenv:Header>""" +
-  //    """<soapenv:Body>""" +
-  //      """<dpc:DownloadCompleteRequest>""" +
-  //        """<DownloadReference>${downloadReference}</DownloadReference>""" +
-  //      """</dpc:DownloadCompleteRequest>""" +
-  //    """"</soapenv:Body>"""" +
-  //  """</soapenv:Envelope>"""
-
   def getUUID = java.util.UUID.randomUUID().toString
 
   lazy val getDate = java.time.LocalDate.now
@@ -205,77 +142,11 @@ class DPCDownloadSimulation extends Simulation {
     Map("uuid" -> getUUID, "siteGLN" -> "7121300.00001.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1")).queue
 
   val requestCodeGenerationData: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "manufacturerRequestID" -> getUUID, "quantity" -> "1", "manufacturerOrgGLN" -> "7311101.00000.00", "machineGLN" -> "7311101.00001.MACH3", "siteGLN" -> "7311101.00001.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1")).circular
-
-  //  var entitlementIds: util.Map[String, List[Entitlement]] = Map("" -> List(Entitlement("", "")))
+    Map("uuid" -> getUUID, "manufacturerRequestID" -> getUUID, "quantity" -> "50000", "manufacturerOrgGLN" -> "7311101.00000.00", "machineGLN" -> "7311101.00001.MACH3", "siteGLN" -> "7311101.00001.00", "productEAN" -> "98765432207", "marketCountryCode" -> "A1")).circular
 
   case class RequestCodeEntitlementList(entitlements: List[Entitlement])
 
   case class Entitlement(entitlementID: String, quantity: String)
-
-  var entitlementsList: util.ArrayList[RequestCodeEntitlementList] = new util.ArrayList[RequestCodeEntitlementList]()
-
-
-  def getEntitlement: ScenarioBuilder = scenario("get entitlement").feed(getEntitlementData)
-    .exec(http("get entitlement")
-      .post("/DpcDownload/DpcDownloadService.svc")
-      .header("SOAPAction", "GetEntitlements")
-      .body(StringBody(getEntitlementsString))
-      .check(bodyString.saveAs("RESPONSE_DATA"))
-      .check(status.is(200))).pause(1)
-    .exec(
-      session => {
-        println(session("RESPONSE_DATA").as[String])
-
-        // set entitlement list
-        session
-      }
-    )
-
-  def getCodeGenerationStatus: ScenarioBuilder = scenario("get status").feed(getEntitlementData)
-    .exec(http("get status")
-      .post("/DpcDownload/DpcDownloadService.svc")
-      .header("SOAPAction", "GetCodeGenerationStatus")
-      .body(StringBody(session => pollString.replace("CUSTOMER_REFERENCE", getNextReference)))
-      .check(bodyString.saveAs("RESPONSE_DATA"))
-      .check(status.is(200))).pause(1)
-    .exec(
-      session => {
-        println(session("RESPONSE_DATA").as[String])
-
-        // set entitlement list
-        session
-      }
-    )
-
-  var downloadReferences: util.ArrayList[String] = new util.ArrayList[String]()
-
-  def getNextDownloadReference = {
-    val ref = downloadReferences.get(0)
-    downloadReferences.remove(0)
-    ref
-  }
-
-  def requestCodeGeneration: ScenarioBuilder = scenario("request code generation").feed(requestCodeGenerationData)
-    .exec(http("request code generation")
-      .post("/DpcDownload/DpcDownloadService.svc")
-      .header("SOAPAction", "RequestCodeGeneration")
-      .body(StringBody(codeGenString))
-      .check(bodyString.saveAs("RESPONSE_DATA"))
-      .check(status.is(200))).pause(1)
-    .exec(
-      session => {
-        val referencePattern: Pattern = Pattern.compile("<DownloadReference>(.*?)</DownloadReference>")
-        val x = session("RESPONSE_DATA").as[String]
-        val matcher = referencePattern.matcher(x)
-        while (matcher.find()) {
-          customerReferences.add(matcher.group()
-            .replace("<DownloadReference>", "").replace("</DownloadReference>", ""))
-        }
-        println(customerReferences)
-        session
-      }
-    )
 
   def pollString = {
     """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
@@ -298,30 +169,42 @@ class DPCDownloadSimulation extends Simulation {
       |</soapenv:Envelope>""".stripMargin
   }
 
-  //
-  def pollCodeGenerationStatus: ScenarioBuilder = scenario("request code generation").repeat(session => 1, "") {
-    //        val downloadReference = getNextDownloadReference
-    doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
-      exec(
-        polling
-          .every(1 seconds)
-          .exec(
-            http("code generation polling")
-              .post("/dpcdownloadservice.svc")
-              .body(StringBody(pollString))
-              .check(
-                bodyString.saveAs("RESPONSE_DATA")
-              ))
-      )
-    }
+  val scn : ScenarioBuilder = scenario("Scenario1").feed(requestCodeGenerationData)
+    .exec(http("get entitlement")
+      .post("/DpcDownload/DpcDownloadService.svc")
+      .header("SOAPAction", "GetEntitlements")
+      .body(StringBody(getEntitlementsString))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200)))
+    .pause(1)
+    .exec(http("request code generation")
+      .post("/DpcDownload/DpcDownloadService.svc")
+      .header("SOAPAction", "RequestCodeGeneration")
+      .body(StringBody(codeGenString))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200)))
+    .exec(
+      session => {
+        val referencePattern: Pattern = Pattern.compile("<DownloadReference>(.*?)</DownloadReference>")
+        val response = session("RESPONSE_DATA").as[String]
+        var reference = ""
+        val matcher = referencePattern.matcher(response)
+        while (matcher.find()) {
+           reference = matcher.group().replace("<DownloadReference>", "")
+            .replace("</DownloadReference>", "")
+        }
+        session.set("CUSTOMER_REFERENCE", reference)
+      }
+    )
+  .doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
+    exec(
+      http("code generation polling")
+        .post("/DpcDownload/DpcDownloadService.svc")
+        .body(StringBody(session => pollString.replace("CUSTOMER_REFERENCE", session("CUSTOMER_REFERENCE").as[String])))
+        .check(
+          bodyString.saveAs("RESPONSE_DATA")
+        ))
   }
 
-  //
-  //  val getCodeGenerationStatus: ScenarioBuilder = scenario("get code generation status").exec(pollCodeGenerationStatus)
-
-  //  setUp(requestCodeGeneration.inject(atOnceUsers(2)).protocols(httpProtocol))
-
-  setUp(getEntitlement.inject(atOnceUsers(1)).protocols(httpProtocol)
-    .andThen(requestCodeGeneration.inject(atOnceUsers(1)).protocols(httpProtocol)
-      .andThen(getCodeGenerationStatus.inject(atOnceUsers(1)).protocols(httpProtocol))))
+  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol))
 }
