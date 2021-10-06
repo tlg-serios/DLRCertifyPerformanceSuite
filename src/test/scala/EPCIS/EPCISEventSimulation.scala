@@ -219,12 +219,12 @@ class EPCISEventSimulation {
 //    .header("Content-Type", "text/xml; charset=utf-8")
 //    .authorizationHeader("username")
 
-  var calls = new util.ArrayList[String]
+//  var calls = new util.ArrayList[String]
 
-  def createStrings(): List[String] = {
-
-    List("")
-  }
+//  def createStrings(): List[String] = {
+//
+//    List("")
+//  }
 //
 //      api.call(EventHandler.getDestroyXMLStrings(wasteDPCs))
 //
