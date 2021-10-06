@@ -6,7 +6,6 @@ import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
 import oms.Constants
-import blackware.BlackwareVariableGenerator.{WorkOrder, orderCount, workOrderName}
 
 import java.util
 import java.util.regex.{Matcher, Pattern}
@@ -127,6 +126,28 @@ class DPCDownloadSimulation extends Simulation {
         </soapenv:Envelope>"""
   }
 
+
+  def downloadString = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
+    <soapenv:Header>
+      <soap:HUBHeader>
+        <soap:RequestId>c7d54a6d-69f2-489c-8056-0949ff698342</soap:RequestId>
+        <soap:ContractId>1</soap:ContractId>
+        <soap:OperatorId>1</soap:OperatorId>
+        <soap:MachineId>1</soap:MachineId>
+        <soap:DateTime>2019-12-09T12:34:56.789+01:00</soap:DateTime>
+        <soap:CallingApplicationId>DTP</soap:CallingApplicationId>
+        <soap:AuthenticationToken>A3D53E5D-F136-4144-B40A-CF7A9A8C3223</soap:AuthenticationToken>
+      </soap:HUBHeader>
+    </soapenv:Header>
+    <soapenv:Body>
+      <dpc:DownloadCodesRequest>
+        <DownloadReference>00016</DownloadReference>
+        <Offset>1</Offset>
+        <Quantity>1</Quantity>
+      </dpc:DownloadCodesRequest>
+    </soapenv:Body>
+  </soapenv:Envelope>"""
+
   def getUUID = java.util.UUID.randomUUID().toString
 
   lazy val getDate = java.time.LocalDate.now
@@ -206,5 +227,43 @@ class DPCDownloadSimulation extends Simulation {
         ))
   }
 
-  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol))
+  val scn2 : ScenarioBuilder = scenario("Scenario2").feed(requestCodeGenerationData)
+    .exec(http("get entitlement")
+      .post("/DpcDownload/DpcDownloadService.svc")
+      .header("SOAPAction", "DownloadCodes")
+      .body(StringBody(session => downloadString))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200)))
+//    .pause(1)
+//    .exec(http("request code generation")
+//      .post("/DpcDownload/DpcDownloadService.svc")
+//      .header("SOAPAction", "RequestCodeGeneration")
+//      .body(StringBody(codeGenString))
+//      .check(bodyString.saveAs("RESPONSE_DATA"))
+//      .check(status.is(200)))
+//    .exec(
+//      session => {
+//        val referencePattern: Pattern = Pattern.compile("<DownloadReference>(.*?)</DownloadReference>")
+//        val response = session("RESPONSE_DATA").as[String]
+//        var reference = ""
+//        val matcher = referencePattern.matcher(response)
+//        while (matcher.find()) {
+//           reference = matcher.group().replace("<DownloadReference>", "")
+//            .replace("</DownloadReference>", "")
+//        }
+//        session.set("CUSTOMER_REFERENCE", reference)
+//      }
+//    )
+  .doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
+    exec(
+      http("code generation polling")
+        .post("/DpcDownload/DpcDownloadService.svc")
+        .body(StringBody(session => downloadString))
+        .check(
+          bodyString.saveAs("RESPONSE_DATA")
+        ))
+  }
+
+  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol).andThen(
+    scn2.inject(nothingFor(10.seconds), atOnceUsers(1)).protocols(httpProtocol)))
 }
