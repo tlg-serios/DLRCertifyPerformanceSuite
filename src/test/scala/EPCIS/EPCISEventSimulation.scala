@@ -57,7 +57,12 @@ class EPCISEventSimulation {
         dpcsFromCSV.add(line.substring(0, 13))
       }
     }
-//    println(dpcsFromCSV)
+  }
+
+  def groupDPCs(dpcs: List[String]) = {
+    dpcsFromCSV.asScala.toList.grouped(5).foreach(group => {
+      partitionedDPCs.add(group)
+    })
   }
 
   def getDPCs(number: Int) = {
@@ -74,6 +79,7 @@ class EPCISEventSimulation {
   val numberOfCalls = 10
 
   var dpcsFromCSV: util.ArrayList[String] = new util.ArrayList[String]()
+  var partitionedDPCs: util.ArrayList[List[String]] = new util.ArrayList[String]()
 
 //  var separatedDPCs = new util.TreeMap[String, util.ArrayList[String]]()
 //  var liveDPCs: util.ArrayList[String] = new util.ArrayList[String]()
@@ -88,6 +94,14 @@ class EPCISEventSimulation {
       "<epc>${epcCommissionPrefix}" + dpc + "</epc>\n"
     })
     commissionString.replace("EPC_LIST", epcList).replace("INSTANCE_ID", getInstanceID.toString)
+  }
+
+  def createCommissionStrings(groupedDPCs: List[List[String]]) = {
+    val commissionStrings = new util.ArrayList[String]()
+    groupedDPCs.foreach(group => {
+      commissionStrings.add(generateCommissionEvent(group))
+    })
+    commissionStrings.asScala.toList
   }
 
   def generateAggregationEvent(dpcs: List[String]) = {
