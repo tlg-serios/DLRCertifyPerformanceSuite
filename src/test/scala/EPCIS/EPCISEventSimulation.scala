@@ -18,7 +18,7 @@ import java.util
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.io.Source
 
-class EPCISEventSimulation {
+class EPCISEventSimulation extends Simulation {
 
   var instanceID: BigInteger = null
 
@@ -34,22 +34,51 @@ class EPCISEventSimulation {
     instanceID
   }
 
-  @Test def generate() = {
-    seperateDPCS("C:" + File.separator + "Workspace" + File.separator +
-      "certify-performance-tests" + File.separator + "src" + File.separator + "test" + File.separator + "scala" + File.separator +"EPCIS" + File.separator + "A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
-    println(generateCommissionEvent(getDPCs(5).asScala.toList))
-    println(generateCommissionEvent(getDPCs(5).asScala.toList))
-    println(generateCommissionEvent(getDPCs(5).asScala.toList))
-  }
 
-  @Test def generateDPCList() = {
-    seperateDPCS("C:" + File.separator + "Workspace" + File.separator +
-      "certify-performance-tests" + File.separator + "src" + File.separator + "test" + File.separator + "scala" + File.separator +"EPCIS" + File.separator + "A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
-    println(getDPCs(5))
-    println(getDPCs(4))
-    println(getDPCs(8))
-    println(getDPCs(7))
-  }
+  val sagaEPCISData : FeederBuilderBase[String]#F = Array(
+    Map("date" -> getTimestamp, "readPoint" -> "urn:epc:id:sgln:7311101.00001.99MACH1", "sourceLocation" -> "urn:epc:id:gdti:7311101.00001.00", "sourceOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destLocation" -> "urn:epc:id:sgln:7311101.00000.00", "bizLocation" -> "urn:epc:id:gdti:7311101.00001.00", "bizTrans" -> "urn:epcglobal:cbv:bt:7311101.00001.00", "epcCommissionPrefix" -> "http://dts.gta.gov.qa/epcis-aggr/obj/")).circular
+
+
+  val httpProtocol: HttpProtocolBuilder = http
+    .baseUrl(Constants.sagaUrl)
+    .inferHtmlResources()
+    .acceptHeader("text/html;charset=UTF-8")
+    .header("Content-Type", "text/xml; charset=utf-8")
+    .header("username", "admin")
+    .header("password", "Staffanstorp!")
+
+  def callEpcis: ScenarioBuilder = scenario("callEPCIS").feed(sagaEPCISData)
+  exec(http("call epcis")
+    .post("/api/acquire/rabbitmq/epcis")
+    .body(StringBody("commissionString"))
+//    .body(StringBody(session => generateCommissionEvent(getDPCs(5).asScala.toList)))
+    .check(bodyString.saveAs("RESPONSE_DATA"))
+    .check(status.is(200))).pause(1)
+
+  def callEpcis2: ScenarioBuilder = scenario("callEPCIS").feed(sagaEPCISData)
+  exec(http("call epcis")
+    .post("/api/acquire/rabbitmq/epcis")
+    .body(StringBody("commissionString")))
+
+//  @Test def generate() = {
+//    seperateDPCS("C:" + File.separator + "Workspace" + File.separator +
+//      "certify-performance-tests" + File.separator + "src" + File.separator + "test" + File.separator + "scala" + File.separator +"EPCIS" + File.separator + "A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
+//    println(generateCommissionEvent(getDPCs(5).asScala.toList))
+//    println(generateCommissionEvent(getDPCs(5).asScala.toList))
+//    println(generateCommissionEvent(getDPCs(5).asScala.toList))
+//  }
+//
+//  @Test def generateDPCList() = {
+//    seperateDPCS("C:" + File.separator + "Workspace" + File.separator +
+//      "certify-performance-tests" + File.separator + "src" + File.separator + "test" + File.separator + "scala" + File.separator +"EPCIS" + File.separator + "A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
+//    println(getDPCs(5))
+//    println(getDPCs(4))
+//    println(getDPCs(8))
+//    println(getDPCs(7))
+//  }
+
+  before(seperateDPCS("C:" + File.separator + "Workspace" + File.separator +
+      "certify-performance-tests" + File.separator + "src" + File.separator + "test" + File.separator + "scala" + File.separator +"EPCIS" + File.separator + "A1Not applicable_0001C_2021_10_06_11_39_AM.csv"))
 
   def seperateDPCS(fileName: String) = {
     for (line <- Source.fromFile(fileName).getLines) {
@@ -66,6 +95,9 @@ class EPCISEventSimulation {
   }
 
   def getDPCs(number: Int) = {
+    if (dpcsFromCSV == null) {
+      seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\EPCIS\\A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
+    }
     var num = number
     var listToReturn = new util.ArrayList[String]()
     while (num > 0) {
@@ -79,7 +111,7 @@ class EPCISEventSimulation {
   val numberOfCalls = 10
 
   var dpcsFromCSV: util.ArrayList[String] = new util.ArrayList[String]()
-  var partitionedDPCs: util.ArrayList[List[String]] = new util.ArrayList[String]()
+  var partitionedDPCs: util.ArrayList[List[String]] = new util.ArrayList[List[String]]()
 
 //  var separatedDPCs = new util.TreeMap[String, util.ArrayList[String]]()
 //  var liveDPCs: util.ArrayList[String] = new util.ArrayList[String]()
@@ -88,6 +120,7 @@ class EPCISEventSimulation {
 //  var strings = new util.ArrayList[String]
 
   def generateCommissionEvent(dpcs: List[String]) = {
+//    seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\EPCIS\\A1Not applicable_0001C_2021_10_06_11_39_AM.csv")
     var epcList = ""
     dpcs.foreach(dpc => {
       epcList = epcList +
@@ -222,17 +255,6 @@ class EPCISEventSimulation {
     LocalDate.now.toString
   }
 
-//  val sagaEPCISData : FeederBuilderBase[String]#F = Array(
-//    Map("date" -> getTimestamp, "readPoint" -> "FIND ME", "sourceLocation" -> "FIND ME", "sourceOwner" -> "FIND ME", "destOwner" -> "FIND ME", "destLocation" -> "FIND ME", "bizLocation" -> "FIND ME", "bizTrans" -> "FIND ME", "epcCommissionPrefix" -> "FIND ME", "epcAggregationPrefix" -> "FIND ME")).circular
-
-
-//  val httpProtocol: HttpProtocolBuilder = http
-//    .baseUrl(Constants.sagaUrl)
-//    .inferHtmlResources()
-//    .acceptHeader("text/html;charset=UTF-8")
-//    .header("Content-Type", "text/xml; charset=utf-8")
-//    .authorizationHeader("username")
-
 //  var calls = new util.ArrayList[String]
 
 //  def createStrings(): List[String] = {
@@ -256,10 +278,5 @@ class EPCISEventSimulation {
 //    CSVHandler.output("shippedCodes.csv", shipment.getContainerID)
 //  // set data feeder as ArrayList 'refs', then
 
-//  def callEpcis: ScenarioBuilder = scenario("callEPCIS")
-//    exec(http("call epcis")
-//      .post("/api/acquire/rabbitmq/epcis")
-//      .body(StringBody("EPCIS_EVENT".replace("EPCIS_EVENT", "getNextString")))
-//      .check(bodyString.saveAs("RESPONSE_DATA"))
-//      .check(status.is(200))).pause(1)
+  setUp(callEpcis2.inject(atOnceUsers(1)).protocols(httpProtocol))
 }
