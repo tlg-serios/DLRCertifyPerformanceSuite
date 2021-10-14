@@ -36,7 +36,7 @@ class EPCISEventSimulation extends Simulation {
 
 
   val sagaEPCISData : FeederBuilderBase[String]#F = Array(
-    Map("date" -> getTimestamp, "readPoint" -> "urn:epc:id:sgln:7311101.00001.99MACH1", "sourceLocation" -> "urn:epc:id:gdti:7311101.00001.00", "sourceOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destLocation" -> "urn:epc:id:sgln:7311101.00000.00", "bizLocation" -> "urn:epc:id:gdti:7311101.00001.00", "bizTrans" -> "urn:epcglobal:cbv:bt:7311101.00001.00", "epcCommissionPrefix" -> "http://dts.gta.gov.qa/epcis-aggr/obj/")).circular
+    Map("date123" -> getTimestamp, "readPoint" -> "urn:epc:id:sgln:7311101.00001.99MACH1", "sourceLocation" -> "urn:epc:id:gdti:7311101.00001.00", "sourceOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destOwner" -> "urn:epc:id:sgln:7311101.00000.00", "destLocation" -> "urn:epc:id:sgln:7311101.00000.00", "bizLocation" -> "urn:epc:id:gdti:7311101.00001.00", "bizTrans" -> "urn:epcglobal:cbv:bt:7311101.00001.00", "epcCommissionPrefix" -> "http://dts.gta.gov.qa/epcis-aggr/obj/")).circular
 
 
   val httpProtocol: HttpProtocolBuilder = http
@@ -56,11 +56,10 @@ class EPCISEventSimulation extends Simulation {
     .check(status.is(200))).pause(1)
 
 
-  val scnT : ScenarioBuilder = scenario("Scenario1")
+  val scnT : ScenarioBuilder = scenario("Scenario1").feed(sagaEPCISData)
     .exec(http("get entitlement")
       .post("/DpcDownload/DpcDownloadService.svc")
-      .header("SOAPAction", "GetEntitlements")
-      .body(StringBody("getEntitlementsString"))
+      .body(StringBody(session => generateCommissionEvent(getDPCs(5).asScala.toList)))
       .check(bodyString.saveAs("RESPONSE_DATA"))
       .check(status.is(200)))
 
@@ -133,9 +132,14 @@ class EPCISEventSimulation extends Simulation {
     var epcList = ""
     dpcs.foreach(dpc => {
       epcList = epcList +
-      "<epc>${epcCommissionPrefix}" + dpc + "</epc>\n"
+      "<epc>EPCCOMMISSIONPREFIX" + dpc + "</epc>\n"
     })
-    commissionString.replace("EPC_LIST", epcList).replace("INSTANCE_ID", getInstanceID.toString)
+    commissionString.replace("EPC_LIST", epcList)
+      .replace("INSTANCE_ID", getInstanceID.toString)
+      .replace("DATE", getTimestamp)
+      .replace("EPCCOMMISSIONPREFIX", "http://dts.gta.gov.qa/epcis-aggr/obj/")
+      .replace("READPOINT", "urn:epc:id:sgln:7311101.00001.99MACH1")
+      .replace("BIZLOCATION", "urn:epc:id:gdti:7311101.00001.00")
   }
 
   def createCommissionStrings(groupedDPCs: List[List[String]]) = {
@@ -181,7 +185,7 @@ class EPCISEventSimulation extends Simulation {
             <TypeVersion>1.0</TypeVersion>
             <InstanceIdentifier>INSTANCE_ID</InstanceIdentifier>
             <Type>Events</Type>
-            <CreationDateAndTime>${date}</CreationDateAndTime>
+            <CreationDateAndTime>DATE</CreationDateAndTime>
           </DocumentIdentification>
         </StandardBusinessDocumentHeader>
       </EPCISHeader>
@@ -194,7 +198,7 @@ class EPCISEventSimulation extends Simulation {
 
   val commissionString = epcisString.replace("EPCIS_BODY",
     """<ObjectEvent>
-      <eventTime>${date}</eventTime>
+      <eventTime>DATE</eventTime>
       <eventTimeZoneOffset>+02:00</eventTimeZoneOffset>
       <epcList>
         EPC_LIST
@@ -203,10 +207,10 @@ class EPCISEventSimulation extends Simulation {
       <bizStep>urn:epcglobal:cbv:bizstep:commissioning</bizStep>
       <disposition>urn:epcglobal:cbv:disp:active</disposition>
       <readPoint>
-        <id>${readPoint}</id>
+        <id>READPOINT</id>
       </readPoint>
       <bizLocation>
-        <id>${bizLocation}</id>
+        <id>BIZLOCATION</id>
       </bizLocation>
     </ObjectEvent>"""
   )
