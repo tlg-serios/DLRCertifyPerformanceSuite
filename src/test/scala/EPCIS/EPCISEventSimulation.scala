@@ -55,6 +55,15 @@ class EPCISEventSimulation extends Simulation {
     .check(bodyString.saveAs("RESPONSE_DATA"))
     .check(status.is(200))).pause(1)
 
+
+  val scnT : ScenarioBuilder = scenario("Scenario1")
+    .exec(http("get entitlement")
+      .post("/DpcDownload/DpcDownloadService.svc")
+      .header("SOAPAction", "GetEntitlements")
+      .body(StringBody("getEntitlementsString"))
+      .check(bodyString.saveAs("RESPONSE_DATA"))
+      .check(status.is(200)))
+
   def callEpcis2: ScenarioBuilder = scenario("callEPCIS").feed(sagaEPCISData)
   exec(http("call epcis")
     .post("/api/acquire/rabbitmq/epcis")
@@ -278,5 +287,5 @@ class EPCISEventSimulation extends Simulation {
 //    CSVHandler.output("shippedCodes.csv", shipment.getContainerID)
 //  // set data feeder as ArrayList 'refs', then
 
-  setUp(callEpcis2.inject(atOnceUsers(1)).protocols(httpProtocol))
+  setUp(scnT.inject(atOnceUsers(1)).protocols(httpProtocol))
 }
