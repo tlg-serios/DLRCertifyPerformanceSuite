@@ -1,24 +1,29 @@
 package dpcDownload
 
-import io.gatling.core.Predef.{pause, _}
+import io.gatling.core.Predef._
 import io.gatling.core.feeder.FeederBuilderBase
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
 import oms.Constants
+import com.github.tototoshi.csv._
 
+import java.io.File
 import java.util
-import java.util.regex.{Matcher, Pattern}
-import scala.concurrent.duration.DurationInt
+import java.util.regex.Pattern
 
 class DPCDownloadSimulation extends Simulation {
+  var downloadedCodes = new Array[String](1)
+  var currentDownloadReference: String = "00017"
+  val orderReference = "SOFT3"
 
-  var customerReferences = new util.ArrayList[String]
-
-  def getNextReference = {
-    val ref = customerReferences.get(0)
-    customerReferences.remove(0)
-    ref
+  def writer(codes: Array[String]) = {
+    val file = new File("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\dpcDownload\\output.csv")
+    val writer = CSVWriter.open(file)
+    codes.foreach(code => {
+      writer.writeRow(List(code))
+    })
+    writer.close()
   }
 
   val httpProtocol: HttpProtocolBuilder = http
@@ -78,7 +83,7 @@ class DPCDownloadSimulation extends Simulation {
    </soapenv:Header>
    <soapenv:Body>
       <dpc:CodeGenRequest>
-        <ManufacturerRequestID>00004</ManufacturerRequestID>
+        <ManufacturerRequestID>SOFT3</ManufacturerRequestID>
         <ManufacturerOrgGLN>${manufacturerOrgGLN}</ManufacturerOrgGLN>
         <SiteGLN>${siteGLN}</SiteGLN>
         <ProductEAN>${productEAN}</ProductEAN>
@@ -87,8 +92,8 @@ class DPCDownloadSimulation extends Simulation {
          <ISR>NA</ISR>
          <Entitlements>
             <Entitlement>
-               <EntitlementID>1</EntitlementID>
-               <Quantity>1</Quantity>
+               <EntitlementID>7</EntitlementID>
+               <Quantity>100</Quantity>
             </Entitlement>
          </Entitlements>
       </dpc:CodeGenRequest>
@@ -111,7 +116,7 @@ class DPCDownloadSimulation extends Simulation {
         </soapenv:Header>
         <soapenv:Body>
         <dpc:CodeGenRequest>
-        <ManufacturerRequestID>1</ManufacturerRequestID>
+        <ManufacturerRequestID>7</ManufacturerRequestID>
         <ManufacturerOrgGLN>${manufacturerOrgGLN}</ManufacturerOrgGLN>
         <SiteGLN>${siteGLN}</SiteGLN>
         <ProductEAN>${productEAN}</ProductEAN>
@@ -126,9 +131,30 @@ class DPCDownloadSimulation extends Simulation {
         </soapenv:Envelope>"""
   }
 
+  def extractDownloadedCodes(response: String) = {
+    val pattern: Pattern = Pattern.compile("<Codes>(.*?)</Codes>")
+    var codeArray = ""
+    val matcher = pattern.matcher(response)
+    while (matcher.find()) {
+      codeArray = matcher.group().replace("<Codes>", "")
+        .replace("</Codes>", "")
+    }
+    codeArray.substring(2, codeArray.length - 2).split("""","""")
+  }
 
+  def setDownloadReference(response: String) = {
+    val pattern: Pattern = Pattern.compile("<DownloadReference>(.*?)</DownloadReference>")
+    var ref = ""
+    val matcher = pattern.matcher(response)
+    while (matcher.find()) {
+      ref = matcher.group().replace("<Codes>", "")
+        .replace("</Codes>", "")
+    }
+    currentDownloadReference = ref
+  }
 
-  def downloadString = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
+  def downloadString =
+    """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/SOAPHeader" xmlns:dpc="http://UCodeBrokerHub.Schemas.Canonical/2013/02/21/DpcDownload">
    <soapenv:Header>
       <soap:HUBHeader>
          <soap:RequestId>d7d54a6d-69f2-489c-8055-0949af698342</soap:RequestId>
@@ -142,9 +168,9 @@ class DPCDownloadSimulation extends Simulation {
    </soapenv:Header>
    <soapenv:Body>
       <dpc:DownloadCodesRequest>
-         <DownloadReference>0001U</DownloadReference>
-         <Offset>1</Offset>
-         <Quantity>3000</Quantity>
+         <DownloadReference>DOWNLOAD_REFERENCE</DownloadReference>
+         <Offset>0</Offset>
+         <Quantity>50</Quantity>
       </dpc:DownloadCodesRequest>
    </soapenv:Body>
 </soapenv:Envelope>"""
@@ -154,17 +180,10 @@ class DPCDownloadSimulation extends Simulation {
   lazy val getDate = java.time.LocalDate.now
 
   val getEntitlementData: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA"),
-    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA")).queue
+    Map("uuid" -> getUUID, "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA")).circular
 
   val requestCodeGenerationData: FeederBuilderBase[String]#F = Array(
-    Map("uuid" -> getUUID, "manufacturerRequestID" -> getUUID, "quantity" -> "50000", "manufacturerOrgGLN" -> "7311101.00000.00", "machineGLN" -> "7311101.00001.99MACH1", "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA")).circular
+    Map("uuid" -> getUUID, "manufacturerRequestID" -> getUUID, "quantity" -> "10000", "manufacturerOrgGLN" -> "7311101.00000.00", "machineGLN" -> "7311101.00001.99MACH1", "siteGLN" -> "7311101.00001.99", "productEAN" -> "129", "marketCountryCode" -> "QA")).circular
 
   case class RequestCodeEntitlementList(entitlements: List[Entitlement])
 
@@ -191,7 +210,7 @@ class DPCDownloadSimulation extends Simulation {
       |</soapenv:Envelope>""".stripMargin
   }
 
-  val scn : ScenarioBuilder = scenario("Scenario1").feed(requestCodeGenerationData)
+  val scn: ScenarioBuilder = scenario("Scenario1").feed(requestCodeGenerationData)
     .exec(http("get entitlement")
       .post("/DpcDownload/DpcDownloadService.svc")
       .header("SOAPAction", "GetEntitlements")
@@ -212,64 +231,53 @@ class DPCDownloadSimulation extends Simulation {
         var reference = ""
         val matcher = referencePattern.matcher(response)
         while (matcher.find()) {
-           reference = matcher.group().replace("<DownloadReference>", "")
+          reference = matcher.group().replace("<DownloadReference>", "")
             .replace("</DownloadReference>", "")
         }
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println("REF")
+        println(reference)
         session.set("CUSTOMER_REFERENCE", reference)
+        currentDownloadReference = reference
+        session
       }
     )
-  .doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
-    exec(
-      http("code generation polling")
-        .post("/DpcDownload/DpcDownloadService.svc")
-        .body(StringBody(session => pollString.replace("CUSTOMER_REFERENCE", session("CUSTOMER_REFERENCE").as[String])))
-        .check(
-          bodyString.saveAs("RESPONSE_DATA")
-        ))
-  }
+    .doWhile(session => session("RESPONSE_DATA").as[String].contains("Pending")) {
+      exec(
+        http("code generation polling")
+          .post("/DpcDownload/DpcDownloadService.svc")
+          .body(StringBody(session => pollString.replace("CUSTOMER_REFERENCE", currentDownloadReference)))
+          .check(
+            bodyString.saveAs("RESPONSE_DATA")
+          ))
+        .pause(10)
+    }
 
-//
-//  def getCodes = {
-//    fileDownloader
-//  }
-
-  val scn2 : ScenarioBuilder = scenario("Scenario2").feed(requestCodeGenerationData)
-    .exec(http("get entitlement")
+  val scn2: ScenarioBuilder = scenario("Scenario2").feed(requestCodeGenerationData)
+    .exec(http("dl code")
       .post("/DpcDownload/DpcDownloadService.svc")
       .header("SOAPAction", "DownloadCodes")
-      .body(StringBody(session => downloadString))
+      .body(StringBody(session => downloadString.replace("DOWNLOAD_REFERENCE", currentDownloadReference)))
       .check(bodyString.saveAs("RESPONSE_DATA"))
       .check(status.is(200)))
-//    .pause(1)
-//    .exec(http("request code generation")
-//      .post("/DpcDownload/DpcDownloadService.svc")
-//      .header("SOAPAction", "RequestCodeGeneration")
-//      .body(StringBody(codeGenString))
-//      .check(bodyString.saveAs("RESPONSE_DATA"))
-//      .check(status.is(200)))
-//    .exec(
-//      session => {
-//        val referencePattern: Pattern = Pattern.compile("<DownloadReference>(.*?)</DownloadReference>")
-//        val response = session("RESPONSE_DATA").as[String]
-//        var reference = ""
-//        val matcher = referencePattern.matcher(response)
-//        while (matcher.find()) {
-//           reference = matcher.group().replace("<DownloadReference>", "")
-//            .replace("</DownloadReference>", "")
-//        }
-//        session.set("CUSTOMER_REFERENCE", reference)
-//      }
-//    )
-//  .doWhile(session => !session("RESPONSE_DATA").as[String].contains("Success")) {
-//    exec(
-//      http("code generation polling")
-//        .post("/DpcDownload/DpcDownloadService.svc")
-//        .body(StringBody(session => downloadString))
-//        .check(
-//          bodyString.saveAs("RESPONSE_DATA")
-//        ))
-//  }
+    .exec(session => {
+      downloadedCodes = extractDownloadedCodes(session("RESPONSE_DATA").as[String])
+      downloadedCodes.foreach(x => {
+        println(x)
+      })
+      writer(downloadedCodes)
+      session
+    })
 
-  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol))
-//    setUp(scn2.inject(atOnceUsers(1)).protocols(httpProtocol))
+  setUp(scn.inject(atOnceUsers(1)).protocols(httpProtocol)
+    .andThen(scn2.inject(atOnceUsers(1)).protocols(httpProtocol)))
 }
