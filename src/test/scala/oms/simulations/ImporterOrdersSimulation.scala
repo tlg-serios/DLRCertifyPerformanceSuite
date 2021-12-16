@@ -83,7 +83,7 @@
 //      .formParam("""reqaction""", """confirmSubmitOrder""")
 //      .formParam("""organisationGroup""", importerOrder.deliveryTo)
 //      .formParam("""selectedSite""", importerOrder.deliverySite)
-//      .formParam("""selectedProduct""", importerOrder.product)
+//      .formParam("""selectedProdufeedct""", importerOrder.product)
 //      .formParam("""selectedMarket""", importerOrder.marketCode)
 //      .formParam("""selectedLicensee""", importerOrder.licensee)
 //      .formParam("""selectedMarket""", importerOrder.marketCode)
