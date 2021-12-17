@@ -1,21 +1,31 @@
-Gatling's SBT plugin demo
+
+DLR Performance tests
 =========================
 
-A simple project showing how to configure and use Gatling's SBT plugin to run Gatling simulations. 
+Contains tests for creating Blackware stock, testing Saga and DPC APIs and some frontend journeys
 
-This project uses SBT 1, which is available [here](https://www.scala-sbt.org/download.html).
-
-Get the project
+Prerequisites
 ---------------
 
-```bash
-git clone https://github.com/gatling/gatling-sbt-plugin-demo.git && cd gatling-sbt-plugin-demo
-```
+Java installed (Built against 1.8.0)
 
-Start SBT
----------
+sbt installed (Built against 1.5.4)
+
+IntelliJ installed with Scala and SBT plugins downloaded
+
+Getting started
+---------------
+Compile project in root folder
 ```bash
-$ sbt
+sbt clean compile rebuild
+```
+Start sbt in root folder of project
+```bash
+sbt
+```
+To run the tests run the below in the sbt console
+```bash
+Gatling / test
 ```
 
 Run all simulations
@@ -32,9 +42,13 @@ Run a single simulation
 > Gatling / testOnly computerdatabase.BasicSimulation
 ```
 
-List all extra tasks
+Reporting
 --------------------
 
-```bash
-> tasks -v gatling
-```
+At the end of a run the test will specify an output file location, ending with a full numerical timestamp
+
+This report can be found in a correspondingly named folder in target/gatling
+
+Within the folder select index.html, open it in IntelliJ and click the Chrome (or preferred browser) icon in the top right corner of the html file
+
+The report itself is very user friendly with graphs and tables displaying total run times and averages, with standard deviations
