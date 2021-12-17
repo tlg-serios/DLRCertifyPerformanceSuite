@@ -15,7 +15,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.io.Source
 
 class EPCISEventSimulation extends Simulation {
-  before(seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\dpcDownload\\output.csv"))
+  before(seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\dpcDownload\\codes.csv"))
   // Used for storing sequential event number
   var instanceID: BigInteger = null
   // Generates next instance id
@@ -71,7 +71,7 @@ class EPCISEventSimulation extends Simulation {
 
   def getDPCs: List[String] = {
     if (dpcsFromCSV == null) {
-      seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\dpcDownload\\output.csv")
+      seperateDPCS("C:\\Workspace\\certify-performance-tests\\src\\test\\scala\\dpcDownload\\codes.csv")
     }
     var listToReturn = new util.ArrayList[String]()
     dpcsFromCSV.forEach(dpc => {

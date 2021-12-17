@@ -37,7 +37,6 @@ class BlackwareSimulation extends Simulation {
   var containersToPrint: util.ArrayList[String] = new util.ArrayList[String]
   var containersForStock: util.ArrayList[String] = new util.ArrayList[String]
   val workOrders: Option[util.ArrayList[WorkOrder]] = Some(new util.ArrayList[WorkOrder]())
-
   // Represents a work orders = a work order reference plus list of associated containers
   case class WorkOrder(ref: String, containers: util.ArrayList[String])
   // Use the next work order reference
@@ -49,7 +48,7 @@ class BlackwareSimulation extends Simulation {
     workOrdersForContainerCapture.remove(0)
     nextIndex
   }
-
+  // Pops next work order
   def assignWorkOrder = {
     val workOrder = workOrdersToAssign.get(0)
     workOrdersForContainerCapture.add(workOrder)
@@ -57,7 +56,6 @@ class BlackwareSimulation extends Simulation {
     workOrdersToAssign.remove(0)
     workOrder
   }
-
   // Returns the next container reference to be printed and then removes it from the list
   def getNextPrintContainer = {
     println("CONTAINER NUMBERS" + containersToPrint)
@@ -65,7 +63,6 @@ class BlackwareSimulation extends Simulation {
     containersToPrint.remove(0)
     container
   }
-
   // Returns the next container reference to be printed and then removes it from the list
   def getNextReadyContainer = {
     println("CONTAINER NUMBERS" + containersForStock)
@@ -84,7 +81,6 @@ class BlackwareSimulation extends Simulation {
   // Pattern for extracting containers from work order calls
   val containerNumberPattern: Pattern = Pattern.compile("ContainerNumber>(.*?)</b")
 
-  // TODO refine
   def getNextWorkOrder: String = {
     orderCount += 1
     val currentWorkOrder = workOrderName + orderCount
@@ -92,10 +88,8 @@ class BlackwareSimulation extends Simulation {
     currentWorkOrder
   }
 
-  // TODO perhaps abstract
   def getUUID = java.util.UUID.randomUUID().toString
 
-  // TODO perhaps abstract
   lazy val getDate = java.time.LocalDate.now
 
   def bundles(i: Int): String = (70000 * i).toString
