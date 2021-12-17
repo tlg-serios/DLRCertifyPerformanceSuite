@@ -6,9 +6,8 @@ import java.util.UUID
 
 object BlackwareVariableGenerator {
   var orderCount: Int = 0
-  var workOrderName: String = "BW-" + getRandomString + "-"
+  var workOrderName: String = s"BW-${getRandomString}-"
   var workOrderRef: String = ""
-
 
   case class WorkOrder(ref: String, containers: java.util.ArrayList[String])
 
@@ -33,5 +32,11 @@ object BlackwareVariableGenerator {
       builder.append(ALPHA_NUMERIC_STRING.charAt(character))
     }
     builder.toString
+  }
+
+  object Stamps {
+    val bundle = 70000
+    val reel = 25000
+    val sheet = 280
   }
 }
